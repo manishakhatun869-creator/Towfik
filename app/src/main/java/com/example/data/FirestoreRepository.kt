@@ -20,7 +20,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class FirestoreRepository(private val context: Context? = null) {
-    private val prefs: SharedPreferences? = context?.getSharedPreferences("towfik_exclusive_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences? = try {
+        context?.getSharedPreferences("towfik_exclusive_prefs", Context.MODE_PRIVATE)
+    } catch (t: Throwable) {
+        Log.e("FirestoreRepository", "SharedPreferences init error", t)
+        null
+    }
 
     private val _items = MutableStateFlow<List<StudyItem>>(loadCachedItems())
     val items: StateFlow<List<StudyItem>> = _items.asStateFlow()
@@ -56,7 +61,11 @@ class FirestoreRepository(private val context: Context? = null) {
             true
         }
         _savedPdfIds.value = current
-        prefs?.edit()?.putStringSet("saved_pdf_item_ids", current)?.apply()
+        try {
+            prefs?.edit()?.putStringSet("saved_pdf_item_ids", current)?.apply()
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Error saving pdf ids", t)
+        }
         return isNowSaved
     }
 
@@ -66,25 +75,45 @@ class FirestoreRepository(private val context: Context? = null) {
 
     init {
         try {
-            if (context != null && FirebaseApp.getApps(context).isEmpty()) {
+            if (context != null) {
                 try {
-                    val options = FirebaseOptions.Builder()
-                        .setProjectId("towfik-exclusive-5e420")
-                        .setApplicationId("1:789667629871:android:d197d71e17cd1e34c16fda")
-                        .setApiKey("AIzaSyCpvzqtJ34tS61rCCFUa2eFaYGIHglepqw")
-                        .setStorageBucket("towfik-exclusive-5e420.firebasestorage.app")
-                        .build()
-                    FirebaseApp.initializeApp(context, options)
-                } catch (e: Exception) {
-                    FirebaseApp.initializeApp(context)
+                    if (FirebaseApp.getApps(context).isEmpty()) {
+                        try {
+                            val options = FirebaseOptions.Builder()
+                                .setProjectId("towfik-exclusive-5e420")
+                                .setApplicationId("1:789667629871:android:d197d71e17cd1e34c16fda")
+                                .setApiKey("AIzaSyCpvzqtJ34tS61rCCFUa2eFaYGIHglepqw")
+                                .setStorageBucket("towfik-exclusive-5e420.firebasestorage.app")
+                                .build()
+                            FirebaseApp.initializeApp(context, options)
+                        } catch (t: Throwable) {
+                            try {
+                                FirebaseApp.initializeApp(context)
+                            } catch (t2: Throwable) {
+                                Log.w("FirestoreRepository", "Default app init failed: ${t2.message}")
+                            }
+                        }
+                    }
+                } catch (t: Throwable) {
+                    Log.w("FirestoreRepository", "FirebaseApp check error: ${t.message}")
                 }
             }
-            firestore = FirebaseFirestore.getInstance()
-            listenToRealtimeUpdates()
-            listenToSubjectsUpdates()
-            fetchInitialFirestoreData()
-        } catch (e: Exception) {
-            Log.w("FirestoreRepository", "Firebase initialization fallback: ${e.message}")
+            firestore = try {
+                FirebaseFirestore.getInstance()
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "FirebaseFirestore getInstance error: ${t.message}")
+                null
+            }
+
+            if (firestore != null) {
+                listenToRealtimeUpdates()
+                listenToSubjectsUpdates()
+                fetchInitialFirestoreData()
+            } else {
+                _syncStatus.value = "Offline Mode (${_items.value.size} materials ready)"
+            }
+        } catch (t: Throwable) {
+            Log.w("FirestoreRepository", "Firebase initialization fallback: ${t.message}")
             _syncStatus.value = "Offline Mode (${_items.value.size} materials ready)"
         }
     }
@@ -120,8 +149,8 @@ class FirestoreRepository(private val context: Context? = null) {
                 )
             }
             if (list.isNotEmpty()) list else getDefaultSubjects()
-        } catch (e: Exception) {
-            Log.e("FirestoreRepository", "Failed to parse cached subjects", e)
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Failed to parse cached subjects", t)
             getDefaultSubjects()
         }
     }
@@ -141,8 +170,8 @@ class FirestoreRepository(private val context: Context? = null) {
                 jsonArray.put(obj)
             }
             prefs?.edit()?.putString("cached_subjects_json", jsonArray.toString())?.apply()
-        } catch (e: Exception) {
-            Log.e("FirestoreRepository", "Failed to save cached subjects", e)
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Failed to save cached subjects", t)
         }
     }
 
@@ -201,8 +230,8 @@ class FirestoreRepository(private val context: Context? = null) {
                 )
             }
             list
-        } catch (e: Exception) {
-            Log.e("FirestoreRepository", "Failed to parse cached items", e)
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Failed to parse cached items", t)
             emptyList()
         }
     }
@@ -244,8 +273,8 @@ class FirestoreRepository(private val context: Context? = null) {
                 jsonArray.put(obj)
             }
             prefs?.edit()?.putString("cached_study_materials_json", jsonArray.toString())?.apply()
-        } catch (e: Exception) {
-            Log.e("FirestoreRepository", "Failed to save cached items", e)
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Failed to save cached items", t)
         }
     }
 
@@ -261,8 +290,8 @@ class FirestoreRepository(private val context: Context? = null) {
                                 try {
                                     val item = docToStudyItem(doc.id, doc.data ?: emptyMap())
                                     list.add(item)
-                                } catch (e: Exception) {
-                                    Log.e("FirestoreRepository", "Parsing error on doc: ${doc.id}", e)
+                                } catch (t: Throwable) {
+                                    Log.e("FirestoreRepository", "Parsing error on doc: ${doc.id}", t)
                                 }
                             }
                             _items.value = list
@@ -276,8 +305,8 @@ class FirestoreRepository(private val context: Context? = null) {
                         Log.w("FirestoreRepository", "Initial fetch failed: ${e.message}")
                         _syncStatus.value = "Live Firestore Active (Offline ready)"
                     }
-            } catch (e: Exception) {
-                Log.w("FirestoreRepository", "Fetch exception: ${e.message}")
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "Fetch exception: ${t.message}")
             }
         }
     }
@@ -298,8 +327,8 @@ class FirestoreRepository(private val context: Context? = null) {
                             try {
                                 val item = docToStudyItem(doc.id, doc.data ?: emptyMap())
                                 list.add(item)
-                            } catch (e: Exception) {
-                                Log.e("FirestoreRepository", "Error parsing doc: ${doc.id}", e)
+                            } catch (t: Throwable) {
+                                Log.e("FirestoreRepository", "Error parsing doc: ${doc.id}", t)
                             }
                         }
                         if (list.isNotEmpty() || snapshots.documents.isEmpty()) {
@@ -309,8 +338,8 @@ class FirestoreRepository(private val context: Context? = null) {
                         }
                     }
                 }
-        } catch (e: Exception) {
-            Log.w("FirestoreRepository", "Error in realtime snapshot: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w("FirestoreRepository", "Error in realtime snapshot: ${t.message}")
         }
     }
 
@@ -345,8 +374,8 @@ class FirestoreRepository(private val context: Context? = null) {
                         }
                     }
                 }
-        } catch (e: Exception) {
-            Log.w("FirestoreRepository", "Error in subjects snapshot: ${e.message}")
+        } catch (t: Throwable) {
+            Log.w("FirestoreRepository", "Error in subjects snapshot: ${t.message}")
         }
     }
 
@@ -376,9 +405,9 @@ class FirestoreRepository(private val context: Context? = null) {
                         _syncStatus.value = "Firestore Sync Notice: ${e.localizedMessage ?: "Check Firestore Rules"}"
                         Log.e("FirestoreRepository", "Firestore write failure for ${item.id}", e)
                     }
-            } catch (e: Exception) {
-                Log.w("FirestoreRepository", "Add item error: ${e.message}")
-                _syncStatus.value = "Sync Exception: ${e.localizedMessage}"
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "Add item error: ${t.message}")
+                _syncStatus.value = "Sync Exception: ${t.localizedMessage}"
             }
         } else {
             _syncStatus.value = "Saved locally. Firestore reconnecting..."
@@ -399,8 +428,8 @@ class FirestoreRepository(private val context: Context? = null) {
                     .addOnFailureListener { e ->
                         _syncStatus.value = "Delete error: ${e.localizedMessage}"
                     }
-            } catch (e: Exception) {
-                Log.w("FirestoreRepository", "Delete error: ${e.message}")
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "Delete error: ${t.message}")
             }
         }
     }
@@ -430,8 +459,8 @@ class FirestoreRepository(private val context: Context? = null) {
                 ).addOnSuccessListener {
                     _syncStatus.value = "Subject saved: ${subject.displayName}"
                 }
-            } catch (e: Exception) {
-                Log.w("FirestoreRepository", "Save subject error: ${e.message}")
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "Save subject error: ${t.message}")
             }
         }
     }
@@ -447,8 +476,8 @@ class FirestoreRepository(private val context: Context? = null) {
                     .addOnSuccessListener {
                         _syncStatus.value = "Subject removed from Firestore"
                     }
-            } catch (e: Exception) {
-                Log.w("FirestoreRepository", "Delete subject error: ${e.message}")
+            } catch (t: Throwable) {
+                Log.w("FirestoreRepository", "Delete subject error: ${t.message}")
             }
         }
     }
@@ -456,7 +485,11 @@ class FirestoreRepository(private val context: Context? = null) {
     fun loginAdmin(email: String, pass: String): Boolean {
         if (email.trim().equals("towfik@gmail.com", ignoreCase = true) && pass.trim() == "238890") {
             _isAdminLoggedIn.value = true
-            prefs?.edit()?.putBoolean("is_admin_logged_in", true)?.apply()
+            try {
+                prefs?.edit()?.putBoolean("is_admin_logged_in", true)?.apply()
+            } catch (t: Throwable) {
+                Log.e("FirestoreRepository", "Error saving admin login state", t)
+            }
             return true
         }
         return false
@@ -464,7 +497,11 @@ class FirestoreRepository(private val context: Context? = null) {
 
     fun logoutAdmin() {
         _isAdminLoggedIn.value = false
-        prefs?.edit()?.putBoolean("is_admin_logged_in", false)?.apply()
+        try {
+            prefs?.edit()?.putBoolean("is_admin_logged_in", false)?.apply()
+        } catch (t: Throwable) {
+            Log.e("FirestoreRepository", "Error saving admin logout state", t)
+        }
     }
 
     private fun studyItemToMap(item: StudyItem): Map<String, Any> {
