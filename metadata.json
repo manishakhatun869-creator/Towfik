@@ -1,0 +1,7 @@
+{
+  "name": "Towfik Exclusive",
+  "description": "Madhyamik Class 10 educational learning platform featuring chapter notes, PYQs, suggestions, and marks-wise questions (1, 2, 4, 5, 8 marks) with real-time updates and educator management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
