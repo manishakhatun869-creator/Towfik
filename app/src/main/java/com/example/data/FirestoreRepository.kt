@@ -176,7 +176,8 @@ class FirestoreRepository(private val context: Context? = null) {
     }
 
     private fun loadCachedItems(): List<StudyItem> {
-        val raw = prefs?.getString("cached_study_materials_json", null) ?: return emptyList()
+        val raw = prefs?.getString("cached_study_materials_json", null)
+            ?: return SampleDataProvider.getInitialStudyItems()
         return try {
             val jsonArray = JSONArray(raw)
             val list = mutableListOf<StudyItem>()
@@ -229,10 +230,10 @@ class FirestoreRepository(private val context: Context? = null) {
                     )
                 )
             }
-            list
+            if (list.isNotEmpty()) list else SampleDataProvider.getInitialStudyItems()
         } catch (t: Throwable) {
             Log.e("FirestoreRepository", "Failed to parse cached items", t)
-            emptyList()
+            SampleDataProvider.getInitialStudyItems()
         }
     }
 
@@ -298,7 +299,11 @@ class FirestoreRepository(private val context: Context? = null) {
                             saveCachedItems(list)
                             _syncStatus.value = "Synced with Cloud Firestore (${list.size} materials)"
                         } else if (_items.value.isEmpty()) {
-                            _syncStatus.value = "Connected to Firestore (0 materials found)"
+                            val starter = SampleDataProvider.getInitialStudyItems()
+                            _items.value = starter
+                            _syncStatus.value = "Connected — starter notes ready (${starter.size})"
+                        } else {
+                            _syncStatus.value = "Connected to Firestore • ${_items.value.size} notes ready"
                         }
                     }
                     .addOnFailureListener { e ->

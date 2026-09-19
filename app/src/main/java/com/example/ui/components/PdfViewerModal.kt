@@ -332,7 +332,11 @@ fun PdfViewerModal(
                 ) {
                     Button(
                         onClick = {
-                            isDownloaded = true
+                            val file = PdfGeneratorUtil.generatePdfFile(context, item)
+                            if (file != null) {
+                                isDownloaded = true
+                                PdfGeneratorUtil.sharePdf(context, item)
+                            }
                         },
                         modifier = Modifier
                             .weight(1f)

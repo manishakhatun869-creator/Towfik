@@ -627,7 +627,7 @@ fun AddEditMaterialDialog(
                                             Row(
                                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                                             ) {
-                                                listOf(1, 2, 3, 5, 8).forEach { m ->
+                                                listOf(1, 2, 3, 4, 5, 8).forEach { m ->
                                                     Box(
                                                         modifier = Modifier
                                                             .clip(RoundedCornerShape(6.dp))

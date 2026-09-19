@@ -61,11 +61,11 @@ fun HeroHeader(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(
+                    Brush.linearGradient(
                         colors = listOf(
                             TowfikPrimaryDark,
                             TowfikPrimaryBlue,
-                            Color(0xFF0F172A)
+                            Color(0xFF123A72)
                         )
                     )
                 )
