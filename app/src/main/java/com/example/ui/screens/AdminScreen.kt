@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,9 +29,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInBrowser
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,7 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.SubjectItem
 import com.example.ui.components.AdminAuthCard
+import com.example.ui.components.PremiumScreenHeader
 import com.example.ui.components.QuestionAnswerCard
+import com.example.ui.theme.TowfikLightBg
 import com.example.ui.theme.TowfikPrimaryBlue
 import com.example.viewmodel.MainViewModel
 
@@ -83,7 +81,6 @@ fun AdminScreen(
     var subjectEnglishName by remember { mutableStateOf("") }
     var subjectBengaliName by remember { mutableStateOf("") }
 
-    // Dialog for adding or editing subject
     if (showAddEditSubjectDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -105,7 +102,7 @@ fun AdminScreen(
                         label = { Text("Subject Name (English)") },
                         placeholder = { Text("e.g. Life Science") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(12.dp)
                     )
 
                     OutlinedTextField(
@@ -114,7 +111,7 @@ fun AdminScreen(
                         label = { Text("Subject Name (বাংলা)") },
                         placeholder = { Text("যেমনঃ জীবন বিজ্ঞান") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
             },
@@ -136,7 +133,8 @@ fun AdminScreen(
                             Toast.makeText(context, "Subject saved and synced to Firestore!", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
                     Text("Save to Firestore", fontWeight = FontWeight.Bold)
                 }
@@ -155,70 +153,33 @@ fun AdminScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(TowfikLightBg)
             .testTag("admin_screen_lazy_column"),
         contentPadding = PaddingValues(bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top Header
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
-                    .background(TowfikPrimaryBlue)
-                    .padding(horizontal = 20.dp, vertical = 24.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(Color(0x33FFFFFF)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isAdmin) Icons.Default.VerifiedUser else Icons.Default.Security,
-                            contentDescription = "Admin Shield",
-                            tint = Color.White,
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-
-                    Column {
-                        Text(
-                            text = "Towfik Admin Console",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = if (isAdmin) "Admin Mode (Towfik Sir) - Full Edit & Firestore Sync" else "Student Mode (Admin Login Required)",
-                            fontSize = 12.sp,
-                            color = Color(0xFFE0E7FF)
-                        )
-                    }
-                }
-            }
+            PremiumScreenHeader(
+                title = "Admin console",
+                subtitle = if (isAdmin) "Towfik Sir • full edit & cloud publish" else "Secure login required for publishing",
+                icon = Icons.Default.AdminPanelSettings
+            )
         }
 
-        // Web App & Online Hub Card (Accessible in both student and admin mode)
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
-                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFBFDBFE))
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
@@ -232,7 +193,7 @@ fun AdminScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Towfik Exclusive Web App & Cloud Hub",
+                            text = "Web app & cloud hub",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1E3A8A)
@@ -240,7 +201,7 @@ fun AdminScreen(
                     }
 
                     Text(
-                        text = "Access all study materials, Madhyamik suggestions, and PDF downloads directly in any browser or web device.",
+                        text = "Open Madhyamik suggestions, notes and PDF downloads in any browser.",
                         fontSize = 12.sp,
                         color = Color(0xFF334155),
                         lineHeight = 17.sp
@@ -257,7 +218,7 @@ fun AdminScreen(
                             },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.OpenInBrowser,
@@ -266,7 +227,7 @@ fun AdminScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Open Web App", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Open Web", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
 
                         OutlinedButton(
@@ -283,7 +244,7 @@ fun AdminScreen(
                                 }
                                 context.startActivity(Intent.createChooser(shareIntent, "Share Web App Link"))
                             },
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
@@ -292,7 +253,7 @@ fun AdminScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Share Link", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TowfikPrimaryBlue)
+                            Text("Share", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TowfikPrimaryBlue)
                         }
                     }
                 }
@@ -300,7 +261,6 @@ fun AdminScreen(
         }
 
         if (!isAdmin) {
-            // Unlocked Admin Authentication Form
             item {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     AdminAuthCard(
@@ -314,7 +274,6 @@ fun AdminScreen(
                 }
             }
         } else {
-            // Admin Dashboard Controls
             item {
                 Column(
                     modifier = Modifier
@@ -322,11 +281,10 @@ fun AdminScreen(
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Real-time Cloud Firestore Status
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
-                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(16.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFBBF7D0))
                     ) {
                         Row(
@@ -344,7 +302,7 @@ fun AdminScreen(
                             )
                             Column {
                                 Text(
-                                    text = "Live Firestore Cloud Database",
+                                    text = "Live Firestore database",
                                     fontSize = 13.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF15803D)
@@ -358,15 +316,14 @@ fun AdminScreen(
                         }
                     }
 
-                    // Upload Action Button
                     Button(
                         onClick = { viewModel.openAddEditDialog(null) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
+                            .height(52.dp)
                             .testTag("admin_upload_new_btn"),
                         colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
@@ -376,13 +333,12 @@ fun AdminScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Upload Question / Suggestion to Firestore",
+                            text = "Upload question / suggestion",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
 
-                    // Logout Admin Button
                     OutlinedButton(
                         onClick = {
                             viewModel.logoutAdmin()
@@ -390,9 +346,9 @@ fun AdminScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp)
+                            .height(46.dp)
                             .testTag("admin_logout_btn"),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
@@ -402,7 +358,7 @@ fun AdminScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Switch Back to Student Mode",
+                            text = "Switch back to student mode",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFDC2626)
@@ -411,14 +367,13 @@ fun AdminScreen(
                 }
             }
 
-            // SUBJECT MANAGEMENT SECTION (Add / Edit / Delete Subject)
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(18.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
                 ) {
                     Column(
@@ -443,7 +398,7 @@ fun AdminScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
-                                    text = "Manage Subjects (${subjects.size})",
+                                    text = "Manage subjects (${subjects.size})",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF0F172A)
@@ -458,8 +413,8 @@ fun AdminScreen(
                                     showAddEditSubjectDialog = true
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF059669)),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.height(34.dp)
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.height(36.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
@@ -468,18 +423,17 @@ fun AdminScreen(
                                     modifier = Modifier.size(15.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("+ Add Subject", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                                Text("+ Subject", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
                             }
                         }
 
                         HorizontalDivider(color = Color(0xFFF1F5F9))
 
-                        // List of Subjects with Edit & Delete options
                         subjects.forEach { subj ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .background(Color(0xFFF8FAFC))
                                     .padding(horizontal = 10.dp, vertical = 8.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -538,10 +492,9 @@ fun AdminScreen(
                 }
             }
 
-            // List of all items for Admin Management
             item {
                 Text(
-                    text = "Manage Published Materials & Questions (${items.size})",
+                    text = "Published materials (${items.size})",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF0F172A),

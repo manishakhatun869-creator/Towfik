@@ -86,7 +86,7 @@ class MainViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val pyqItems: StateFlow<List<StudyItem>> = items.combine(MutableStateFlow(true)) { allItems, _ ->
-        allItems.filter { it.type.contains("PYQ", ignoreCase = true) || it.pyqYear.isNotBlank() }
+        allItems.filter { it.type.contains("PYQ", ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loginAdmin(email: String, pass: String): Boolean {

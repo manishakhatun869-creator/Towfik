@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AdminPanelSettings
@@ -32,6 +33,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -47,6 +50,7 @@ import com.example.ui.screens.NotesScreen
 import com.example.ui.screens.PdfScreen
 import com.example.ui.screens.PyqScreen
 import com.example.ui.screens.SearchScreen
+import com.example.ui.theme.TowfikLightBg
 import com.example.ui.theme.TowfikPrimaryBlue
 import com.example.viewmodel.MainViewModel
 
@@ -68,27 +72,29 @@ fun TowfikApp(
         NavTab("Home", Icons.Default.Home, "nav_home"),
         NavTab("Search", Icons.Default.Search, "nav_search"),
         NavTab("Notes", Icons.Default.MenuBook, "nav_notes"),
-        NavTab("PYQ Papers", Icons.Default.Quiz, "nav_pyq"),
+        NavTab("PYQ", Icons.Default.Quiz, "nav_pyq"),
         NavTab("PDFs", Icons.Default.PictureAsPdf, "nav_pdfs"),
-        NavTab("Admin Panel", Icons.Default.AdminPanelSettings, "nav_admin")
+        NavTab("Admin", Icons.Default.AdminPanelSettings, "nav_admin")
     )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = TowfikLightBg,
         floatingActionButton = {
-            // Show + FAB on tabs ONLY when Admin is logged in, and never on Search tab (index 1)
             if (isAdmin && selectedTab != 1) {
                 FloatingActionButton(
                     onClick = { viewModel.openAddEditDialog(null) },
                     containerColor = TowfikPrimaryBlue,
                     contentColor = Color.White,
                     shape = CircleShape,
-                    modifier = Modifier.testTag("admin_global_fab_add_btn")
+                    modifier = Modifier
+                        .shadow(12.dp, CircleShape)
+                        .testTag("admin_global_fab_add_btn")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Question / Suggestion",
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
             }
@@ -96,35 +102,48 @@ fun TowfikApp(
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White,
-                tonalElevation = 8.dp,
-                modifier = Modifier.testTag("main_bottom_nav_bar")
+                tonalElevation = 0.dp,
+                modifier = Modifier
+                    .shadow(16.dp, RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp))
+                    .testTag("main_bottom_nav_bar")
             ) {
                 navTabs.forEachIndexed { index, tab ->
                     val isSelected = selectedTab == index
                     NavigationBarItem(
                         selected = isSelected,
                         onClick = { selectedTab = index },
+                        alwaysShowLabel = false,
                         icon = {
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.title,
-                                modifier = Modifier.size(22.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (isSelected) Color(0xFFEFF6FF) else Color.Transparent
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = tab.icon,
+                                    contentDescription = tab.title,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
                         },
                         label = {
                             Text(
                                 text = tab.title,
-                                fontSize = 10.5.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 maxLines = 1
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = TowfikPrimaryBlue,
                             selectedTextColor = TowfikPrimaryBlue,
-                            indicatorColor = Color(0xFFEFF6FF),
-                            unselectedIconColor = Color(0xFF64748B),
-                            unselectedTextColor = Color(0xFF64748B)
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = Color(0xFF94A3B8),
+                            unselectedTextColor = Color(0xFF94A3B8)
                         ),
                         modifier = Modifier.testTag(tab.tag)
                     )
@@ -136,6 +155,7 @@ fun TowfikApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(TowfikLightBg)
         ) {
             AnimatedContent(
                 targetState = selectedTab,
@@ -152,7 +172,6 @@ fun TowfikApp(
                 }
             }
 
-            // PDF Viewer Modal
             selectedItemForPdf?.let { item ->
                 PdfViewerModal(
                     item = item,
@@ -160,7 +179,6 @@ fun TowfikApp(
                 )
             }
 
-            // Admin Add/Edit Dialog
             if (showAddEditDialog) {
                 val currentSubjects by viewModel.subjects.collectAsState()
                 AddEditMaterialDialog(

@@ -1,6 +1,5 @@
 package com.example.ui.screens
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,9 +50,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.components.PremiumEmptyState
+import com.example.ui.components.PremiumScreenHeader
 import com.example.ui.theme.CardBorderColor
 import com.example.ui.theme.PillSubjectBg
 import com.example.ui.theme.PillSubjectText
+import com.example.ui.theme.TowfikLightBg
 import com.example.ui.theme.TowfikPrimaryBlue
 import com.example.util.PdfGeneratorUtil
 import com.example.viewmodel.MainViewModel
@@ -68,7 +70,7 @@ fun PdfScreen(
     val isAdmin by viewModel.isAdminLoggedIn.collectAsState()
     val savedPdfIds by viewModel.savedPdfIds.collectAsState()
 
-    var selectedTab by remember { mutableStateOf("All") } // "All" or "Saved"
+    var selectedTab by remember { mutableStateOf("All") }
 
     val displayedItems = remember(items, savedPdfIds, selectedTab) {
         if (selectedTab == "Saved") {
@@ -81,53 +83,22 @@ fun PdfScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(TowfikLightBg)
             .testTag("pdf_screen_lazy_column"),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Top Header
         item {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFFFECEF)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PictureAsPdf,
-                        contentDescription = "PDFs",
-                        tint = Color(0xFFDC2626),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Column {
-                    Text(
-                        text = "PDF Downloads & Saved Materials",
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "Manage, view, and share your compiled Madhyamik & HS question paper PDFs.",
-                        fontSize = 12.5.sp,
-                        color = Color(0xFF64748B),
-                        lineHeight = 17.sp
-                    )
-                }
-            }
+            PremiumScreenHeader(
+                title = "PDF studio",
+                subtitle = "Preview, save and share compiled A4 papers",
+                icon = Icons.Default.PictureAsPdf
+            )
         }
 
-        // Tab selection pills: All PDFs & Saved PDFs
         item {
             Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -156,7 +127,7 @@ fun PdfScreen(
                                 modifier = Modifier.size(14.dp),
                                 tint = if (selectedTab == "Saved") Color.White else Color(0xFFE11D48)
                             )
-                            Text("Saved PDFs (${savedPdfIds.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Saved (${savedPdfIds.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                     },
                     colors = FilterChipDefaults.filterChipColors(
@@ -168,47 +139,19 @@ fun PdfScreen(
             }
         }
 
-        // PDF Cards or Empty State
         if (displayedItems.isEmpty()) {
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (selectedTab == "Saved") Icons.Default.BookmarkBorder else Icons.Default.PictureAsPdf,
-                            contentDescription = "PDFs",
-                            tint = if (selectedTab == "Saved") Color(0xFFE11D48) else Color(0xFFDC2626),
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Text(
-                            text = if (selectedTab == "Saved") "No Saved PDFs Yet" else "No PDF Materials in Firestore Yet",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0F172A)
-                        )
-                        Text(
-                            text = if (selectedTab == "Saved") {
-                                "Tap the bookmark/save icon on any chapter or study material card to save it here for fast access."
-                            } else {
-                                "Materials uploaded to Cloud Firestore by Towfik Sir will appear here with instant multi-page PDF compilation and sharing."
-                            },
-                            fontSize = 12.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    PremiumEmptyState(
+                        icon = if (selectedTab == "Saved") Icons.Default.BookmarkBorder else Icons.Default.PictureAsPdf,
+                        title = if (selectedTab == "Saved") "No saved PDFs yet" else "No PDF materials yet",
+                        message = if (selectedTab == "Saved") {
+                            "Tap the bookmark icon on any chapter or study card to keep it here for fast access."
+                        } else {
+                            "Materials uploaded by Towfik Sir appear here with instant multi-page PDF compilation."
+                        },
+                        iconTint = if (selectedTab == "Saved") Color(0xFFE11D48) else Color(0xFFDC2626)
+                    )
                 }
             }
         } else {
@@ -217,8 +160,9 @@ fun PdfScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp))
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(22.dp))
+                        .border(1.dp, CardBorderColor, RoundedCornerShape(22.dp))
                         .testTag("pdf_item_card_${item.id}"),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -228,7 +172,6 @@ fun PdfScreen(
                             .fillMaxWidth()
                             .padding(18.dp)
                     ) {
-                        // Top Pill, Save bookmark & Admin delete button
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -252,7 +195,6 @@ fun PdfScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                // Save / Bookmark icon button
                                 IconButton(
                                     onClick = {
                                         val saved = viewModel.toggleSavedPdf(item.id)
@@ -287,7 +229,6 @@ fun PdfScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Document Title
                         Text(
                             text = item.title,
                             fontSize = 16.5.sp,
@@ -298,9 +239,8 @@ fun PdfScreen(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // Size & Date details
                         Text(
-                            text = "${item.qaList.size.coerceAtLeast(1)} Item(s) • ${item.fileSizeKb} KB • ${item.dateAdded}",
+                            text = "${item.qaList.size.coerceAtLeast(1)} item(s) • ${item.fileSizeKb} KB • ${item.dateAdded}",
                             fontSize = 12.sp,
                             color = Color(0xFF64748B),
                             fontWeight = FontWeight.Medium
@@ -308,7 +248,6 @@ fun PdfScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Buttons Row: Preview Info & Share PDF
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -317,10 +256,9 @@ fun PdfScreen(
                                 onClick = { viewModel.openPdfPreview(item) },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(44.dp)
+                                    .height(46.dp)
                                     .testTag("preview_info_btn_${item.id}"),
-                                shape = RoundedCornerShape(10.dp),
-                                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Description,
@@ -330,7 +268,7 @@ fun PdfScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Preview Info",
+                                    text = "Preview",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TowfikPrimaryBlue
@@ -344,10 +282,10 @@ fun PdfScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(44.dp)
+                                    .height(46.dp)
                                     .testTag("share_pdf_btn_${item.id}"),
                                 colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Share,

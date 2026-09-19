@@ -70,7 +70,7 @@ fun AdminAuthCard(
             .border(1.dp, CardBorderColor, RoundedCornerShape(24.dp))
             .testTag("admin_auth_card"),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier

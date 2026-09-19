@@ -7,4 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="towfik_navy">#FF071E3D</color>
+    <color name="towfik_blue">#FF0E4A8A</color>
+    <color name="towfik_gold">#FFC9A227</color>
 </resources>

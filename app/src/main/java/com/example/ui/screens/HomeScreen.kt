@@ -22,12 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Search
@@ -46,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -54,9 +53,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.HeroHeader
+import com.example.ui.components.PremiumEmptyState
 import com.example.ui.components.QuestionAnswerCard
+import com.example.ui.components.SectionHeader
 import com.example.ui.theme.CardBorderColor
-import com.example.ui.theme.TowfikAccentGold
+import com.example.ui.theme.TowfikLightBg
 import com.example.ui.theme.TowfikPrimaryBlue
 import com.example.viewmodel.MainViewModel
 
@@ -68,21 +69,21 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val topSuggestions by viewModel.topSuggestions.collectAsState()
-    val syncStatus by viewModel.syncStatus.collectAsState()
     val isAdmin by viewModel.isAdminLoggedIn.collectAsState()
     val streak by viewModel.streakCount.collectAsState()
     val xp by viewModel.userXp.collectAsState()
     val savedPdfIds by viewModel.savedPdfIds.collectAsState()
+    val items by viewModel.items.collectAsState()
+    val syncStatus by viewModel.syncStatus.collectAsState()
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(TowfikLightBg)
             .testTag("home_screen_lazy_column"),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Hero Header Banner (TOWFIK EXCLUSIVE)
         item {
             HeroHeader(
                 streakCount = streak,
@@ -93,15 +94,25 @@ fun HomeScreen(
             )
         }
 
-        // 2. FCM Push Notification Alert Card
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MiniStatCard("Notes", "${items.size}", Color(0xFFEFF6FF), TowfikPrimaryBlue, Modifier.weight(1f))
+                MiniStatCard("Suggestions", "${topSuggestions.size}", Color(0xFFFEF3C7), Color(0xFFB45309), Modifier.weight(1f))
+                MiniStatCard("XP", "$xp", Color(0xFFF0FDF4), Color(0xFF15803D), Modifier.weight(1f))
+            }
+        }
+
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(1.dp, Color(0xFFDCFCE7), RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, Color(0xFFBBF7D0), RoundedCornerShape(20.dp))
                     .testTag("fcm_alert_card"),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Row(
@@ -118,9 +129,11 @@ fun HomeScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(44.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF22C55E)),
+                                .background(
+                                    Brush.linearGradient(listOf(Color(0xFF22C55E), Color(0xFF15803D)))
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -132,16 +145,16 @@ fun HomeScreen(
                         }
                         Column {
                             Text(
-                                text = "FCM Push Notifications Active",
-                                fontSize = 13.5.sp,
+                                text = "Live exam alerts",
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF15803D)
+                                color = Color(0xFF14532D)
                             )
                             Text(
-                                text = "Real-time alerts enabled when Admin publishes new materials",
-                                fontSize = 11.5.sp,
+                                text = "Push notices when Towfik Sir publishes new papers",
+                                fontSize = 12.sp,
                                 color = Color(0xFF166534),
-                                lineHeight = 15.sp
+                                lineHeight = 16.sp
                             )
                         }
                     }
@@ -151,23 +164,22 @@ fun HomeScreen(
                             Toast.makeText(context, "Latest update: Madhyamik 2026 suggestions updated by Towfik Sir!", Toast.LENGTH_LONG).show()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF15803D)),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         modifier = Modifier.testTag("open_alerts_btn")
                     ) {
-                        Text("Open Alerts", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Alerts", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
 
-        // 3. Admin / Student Mode Card
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(1.dp, CardBorderColor, RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, CardBorderColor, RoundedCornerShape(20.dp))
                     .testTag("auth_mode_card"),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -186,8 +198,8 @@ fun HomeScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .size(46.dp)
+                                .clip(RoundedCornerShape(14.dp))
                                 .background(if (isAdmin) Color(0xFFDCFCE7) else Color(0xFFEFF6FF)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -200,13 +212,13 @@ fun HomeScreen(
                         }
                         Column {
                             Text(
-                                text = if (isAdmin) "Admin Console Active" else "Student Mode View",
+                                text = if (isAdmin) "Admin console active" else "Student workspace",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF0F172A)
                             )
                             Text(
-                                text = if (isAdmin) "Logged in as Towfik Sir (Full Control)" else "Tap to log in as Admin",
+                                text = if (isAdmin) "Towfik Sir • full publish control" else "Browse notes, PYQs & PDFs",
                                 fontSize = 12.sp,
                                 color = Color(0xFF64748B)
                             )
@@ -214,11 +226,11 @@ fun HomeScreen(
                     }
 
                     Button(
-                        onClick = { onNavigateToTab(5) }, // Admin tab
+                        onClick = { onNavigateToTab(5) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isAdmin) Color(0xFF16A34A) else TowfikPrimaryBlue
                         ),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         modifier = Modifier.testTag("admin_login_header_btn")
                     ) {
@@ -233,7 +245,7 @@ fun HomeScreen(
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = if (isAdmin) "Manage Admin" else "Admin Login",
+                                text = if (isAdmin) "Manage" else "Admin",
                                 fontSize = 12.5.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -243,16 +255,10 @@ fun HomeScreen(
             }
         }
 
-        // 4. Exclusive Learning Hub 2x2 Grid
         item {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Exclusive Learning Hub",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A),
-                    modifier = Modifier.padding(bottom = 10.dp)
-                )
+                SectionHeader(title = "Learning hub")
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -260,7 +266,7 @@ fun HomeScreen(
                 ) {
                     HubButton(
                         title = "Smart Search",
-                        subtitle = "Find Any Note & PYQ",
+                        subtitle = "Find any note & PYQ",
                         icon = Icons.Default.Search,
                         iconBg = Color(0xFFE0F2FE),
                         iconTint = Color(0xFF0284C7),
@@ -269,7 +275,7 @@ fun HomeScreen(
                     )
                     HubButton(
                         title = "Edu Notes",
-                        subtitle = "Class 9-12 Notes",
+                        subtitle = "Class 9–12 chapters",
                         icon = Icons.Default.MenuBook,
                         iconBg = Color(0xFFE0E7FF),
                         iconTint = Color(0xFF4338CA),
@@ -278,7 +284,7 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -286,7 +292,7 @@ fun HomeScreen(
                 ) {
                     HubButton(
                         title = "PYQ Papers",
-                        subtitle = "Madhyamik Solved",
+                        subtitle = "Solved board papers",
                         icon = Icons.Default.Quiz,
                         iconBg = Color(0xFFEDE9FE),
                         iconTint = Color(0xFF7C3AED),
@@ -295,7 +301,7 @@ fun HomeScreen(
                     )
                     HubButton(
                         title = "Admin Panel",
-                        subtitle = "Manage & Upload",
+                        subtitle = "Publish & manage",
                         icon = Icons.Default.AdminPanelSettings,
                         iconBg = Color(0xFFCCFBF1),
                         iconTint = Color(0xFF0D9488),
@@ -306,15 +312,14 @@ fun HomeScreen(
             }
         }
 
-        // 5. Firebase Firestore Cloud Sync Card
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(1.dp, Color(0xFFBAE6FD), RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, Color(0xFFBAE6FD), RoundedCornerShape(20.dp))
                     .testTag("firestore_sync_card"),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F9FF)),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Row(
@@ -326,7 +331,7 @@ fun HomeScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
                             .background(TowfikPrimaryBlue),
                         contentAlignment = Alignment.Center
@@ -340,47 +345,50 @@ fun HomeScreen(
                     }
                     Column {
                         Text(
-                            text = "Firebase Firestore Cloud Sync",
+                            text = "Cloud library sync",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0369A1)
+                            color = Color(0xFF0C4A6E)
                         )
                         Text(
-                            text = "Upload questions & sync class data in real-time",
+                            text = syncStatus,
                             fontSize = 12.sp,
-                            color = Color(0xFF0284C7)
+                            color = Color(0xFF0369A1),
+                            lineHeight = 16.sp
                         )
                     }
                 }
             }
         }
 
-        // 6. Madhyamik 2026 Top Suggestions Header
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(text = "✨", fontSize = 16.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .width(3.dp)
+                            .height(16.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color(0xFFC9A227))
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = "Madhyamik 2026 Top Suggestions",
-                        fontSize = 16.5.sp,
+                        text = "2026 suggestions",
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF0F172A)
                     )
                 }
-
                 TextButton(
                     onClick = { onNavigateToTab(1) },
                     modifier = Modifier.testTag("view_all_suggestions_btn")
                 ) {
                     Text(
-                        text = "View All",
+                        text = "View all",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = TowfikPrimaryBlue
@@ -389,54 +397,24 @@ fun HomeScreen(
             }
         }
 
-        // 7. Top Suggestion Cards List or Empty State
         if (topSuggestions.isEmpty()) {
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudSync,
-                            contentDescription = "Cloud",
-                            tint = TowfikPrimaryBlue,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Text(
-                            text = "Cloud Firestore Connected",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0F172A)
-                        )
-                        Text(
-                            text = "No study materials in Firestore yet. Admin (Towfik Sir) can upload 2026 suggestions and question sets.",
-                            fontSize = 12.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                        if (isAdmin) {
+                PremiumEmptyState(
+                    icon = Icons.Default.CloudSync,
+                    title = "No suggestions published yet",
+                    message = "When Towfik Sir uploads 2026 suggestion sets they will appear here instantly.",
+                    action = if (isAdmin) {
+                        {
                             Button(
                                 onClick = { viewModel.openAddEditDialog(null) },
                                 colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.padding(top = 6.dp)
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("+ Upload to Firestore", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("+ Upload to library", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
-                    }
-                }
+                    } else null
+                )
             }
         } else {
             items(topSuggestions, key = { it.id }) { item ->
@@ -457,8 +435,33 @@ fun HomeScreen(
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(30.dp))
+        item { Spacer(modifier = Modifier.height(28.dp)) }
+    }
+}
+
+@Composable
+private fun MiniStatCard(
+    label: String,
+    value: String,
+    bg: Color,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(bg.copy(alpha = 0.35f))
+                .padding(12.dp)
+        ) {
+            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Black, color = tint)
+            Text(text = label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFF64748B))
         }
     }
 }
@@ -475,45 +478,55 @@ fun HubButton(
 ) {
     Card(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .border(1.dp, CardBorderColor, RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
             .testTag("hub_btn_${title.lowercase().replace(" ", "_")}"),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconBg),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(iconBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = iconTint,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
                 Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = iconTint,
-                    modifier = Modifier.size(22.dp)
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = null,
+                    tint = Color(0xFF94A3B8),
+                    modifier = Modifier.size(16.dp)
                 )
             }
-
             Column {
                 Text(
                     text = title,
-                    fontSize = 13.5.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF0F172A)
                 )
                 Text(
                     text = subtitle,
-                    fontSize = 11.sp,
+                    fontSize = 11.5.sp,
                     color = Color(0xFF64748B)
                 )
             }

@@ -2,17 +2,20 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val TowfikPrimaryBlue = Color(0xFF0F56B3)
-val TowfikPrimaryDark = Color(0xFF0A3977)
-val TowfikSecondaryBlue = Color(0xFF1E88E5)
-val TowfikAccentGold = Color(0xFFF59E0B)
-val TowfikStreakOrange = Color(0xFFEA580C)
-val TowfikLightBg = Color(0xFFF4F7FB)
+val TowfikPrimaryBlue = Color(0xFF0E4A8A)
+val TowfikPrimaryDark = Color(0xFF071E3D)
+val TowfikSecondaryBlue = Color(0xFF1B6FCF)
+val TowfikAccentGold = Color(0xFFC9A227)
+val TowfikGoldSoft = Color(0xFFF6E7B4)
+val TowfikStreakOrange = Color(0xFFE25A12)
+val TowfikLightBg = Color(0xFFF3F6FB)
 val TowfikCardSurface = Color(0xFFFFFFFF)
+val TowfikInk = Color(0xFF0F172A)
+val TowfikMuted = Color(0xFF64748B)
+val TowfikHairline = Color(0xFFE6EAF2)
 
-// Marks / Question & Answer Colors (Pink for Question, Blue for Answer)
-val QuestionBoxBg = Color(0xFFFDF2F8)
-val QuestionBoxBorder = Color(0xFFFBCFE8)
+val QuestionBoxBg = Color(0xFFFFF1F6)
+val QuestionBoxBorder = Color(0xFFF9C4DA)
 val QuestionTextColor = Color(0xFFBE185D)
 val QuestionBodyColor = Color(0xFF831843)
 

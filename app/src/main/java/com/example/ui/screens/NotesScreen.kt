@@ -1,9 +1,6 @@
 package com.example.ui.screens
 
 import android.widget.Toast
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -26,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -39,7 +35,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -57,8 +52,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.QuestionAnswer
-import com.example.model.StudyItem
+import com.example.ui.components.PremiumEmptyState
+import com.example.ui.components.PremiumScreenHeader
 import com.example.ui.components.UnifiedQuestionAnswerBox
+import com.example.ui.theme.TowfikLightBg
 import com.example.ui.theme.TowfikPrimaryBlue
 import com.example.util.PdfGeneratorUtil
 import com.example.viewmodel.MainViewModel
@@ -88,59 +85,29 @@ fun NotesScreen(
     }
 
     var currentSubject by remember { mutableStateOf("Physical Science") }
-
-    // Strict subject filtering: Only items matching the selected subject are shown
     val subjectItems = items.filter { it.subject.trim().equals(currentSubject.trim(), ignoreCase = true) }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(TowfikLightBg)
             .testTag("notes_screen_lazy_column"),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Top Header
         item {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFEEF2FF)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MenuBook,
-                        contentDescription = "Notes",
-                        tint = TowfikPrimaryBlue,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-                Column {
-                    Text(
-                        text = "Madhyamik 10 • Subject Notes",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
-                    )
-                    Text(
-                        text = "Subject-Wise Question Analysis & Verified Solutions",
-                        fontSize = 12.sp,
-                        color = Color(0xFF64748B)
-                    )
-                }
-            }
+            PremiumScreenHeader(
+                title = "Subject notes",
+                subtitle = "Madhyamik 10 • verified chapter analysis",
+                icon = Icons.Default.MenuBook
+            )
         }
 
-        // Subject Filter Scroll
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -164,13 +131,13 @@ fun NotesScreen(
             subjectItems.forEach { displayItem ->
                 val isSaved = savedPdfIds.contains(displayItem.id)
 
-                // Chapter Header Card with Save to PDF Tab Icon in Corner & Admin Controls
                 item(key = "header_${displayItem.id}") {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(18.dp))
-                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
+                            .padding(horizontal = 16.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(20.dp))
                             .testTag("chapter_header_card_${displayItem.id}"),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -205,19 +172,18 @@ fun NotesScreen(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
+                                            .clip(RoundedCornerShape(8.dp))
                                             .background(if (displayItem.isSuggestion2026) Color(0xFFFEF3C7) else Color(0xFFEFF6FF))
                                             .padding(horizontal = 8.dp, vertical = 3.dp)
                                     ) {
                                         Text(
-                                            text = if (displayItem.isSuggestion2026) "★ 2026 Suggestion" else "${displayItem.marks} Marks",
+                                            text = if (displayItem.isSuggestion2026) "★ 2026" else "${displayItem.marks} Marks",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (displayItem.isSuggestion2026) Color(0xFF92400E) else TowfikPrimaryBlue
                                         )
                                     }
 
-                                    // Bookmark / Save to PDF Tab Icon in Chapter Corner
                                     IconButton(
                                         onClick = {
                                             val saved = viewModel.toggleSavedPdf(displayItem.id)
@@ -263,8 +229,9 @@ fun NotesScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(Color(0xFFF1F5F9))
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFFF8FAFC))
+                                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
                                         .padding(12.dp)
                                 ) {
                                     Text(
@@ -279,7 +246,6 @@ fun NotesScreen(
                     }
                 }
 
-                // Render questions using Unified Single Box (One box per Q&A)
                 val allNotesQuestions: List<QuestionAnswer> = if (displayItem.qaList.isNotEmpty()) {
                     displayItem.qaList
                 } else if (displayItem.question.isNotBlank() || displayItem.answer.isNotBlank()) {
@@ -290,43 +256,46 @@ fun NotesScreen(
 
                 items(allNotesQuestions, key = { "${displayItem.id}_${it.qNo}" }) { qa ->
                     val qIndex = allNotesQuestions.indexOf(qa)
-                    UnifiedQuestionAnswerBox(
-                        qa = qa,
-                        index = qIndex.coerceAtLeast(0),
-                        isExpanded = true,
-                        isAdmin = isAdmin,
-                        onEdit = { viewModel.openAddEditDialog(displayItem) },
-                        onDelete = {
-                            viewModel.deleteQuestionFromItem(displayItem.id, qIndex)
-                            Toast.makeText(context, "Deleted question ${qa.qNo}", Toast.LENGTH_SHORT).show()
-                        },
-                        onCopyQuestion = {
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Question", qa.question))
-                            Toast.makeText(context, "${qa.qNo} question copied!", Toast.LENGTH_SHORT).show()
-                        },
-                        onCopyAnswer = {
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Answer", qa.answer))
-                            Toast.makeText(context, "${qa.qNo} answer copied!", Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        UnifiedQuestionAnswerBox(
+                            qa = qa,
+                            index = qIndex.coerceAtLeast(0),
+                            isExpanded = true,
+                            isAdmin = isAdmin,
+                            onEdit = { viewModel.openAddEditDialog(displayItem) },
+                            onDelete = {
+                                viewModel.deleteQuestionFromItem(displayItem.id, qIndex)
+                                Toast.makeText(context, "Deleted question ${qa.qNo}", Toast.LENGTH_SHORT).show()
+                            },
+                            onCopyQuestion = {
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Question", qa.question))
+                                Toast.makeText(context, "${qa.qNo} question copied!", Toast.LENGTH_SHORT).show()
+                            },
+                            onCopyAnswer = {
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Answer", qa.answer))
+                                Toast.makeText(context, "${qa.qNo} answer copied!", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 }
 
-                // Item PDF Action Button Row
                 item(key = "pdf_btn_${displayItem.id}") {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
                             onClick = { viewModel.openPdfPreview(displayItem) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp)
+                                .height(46.dp)
                                 .testTag("download_chapter_pdf_btn_${displayItem.id}"),
                             colors = ButtonDefaults.buttonColors(containerColor = TowfikPrimaryBlue),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(14.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PictureAsPdf,
@@ -348,10 +317,10 @@ fun NotesScreen(
                                 Toast.makeText(context, "Preparing & sharing official PDF...", Toast.LENGTH_SHORT).show()
                             },
                             modifier = Modifier
-                                .height(44.dp)
+                                .height(46.dp)
                                 .testTag("share_chapter_pdf_btn_${displayItem.id}"),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
-                            shape = RoundedCornerShape(12.dp)
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F766E)),
+                            shape = RoundedCornerShape(14.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
@@ -372,40 +341,12 @@ fun NotesScreen(
             }
         } else {
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MenuBook,
-                            contentDescription = "Notes",
-                            tint = TowfikPrimaryBlue,
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Text(
-                            text = "No $currentSubject Notes in Firestore",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0F172A)
-                        )
-                        Text(
-                            text = "Study materials added for $currentSubject by Towfik Sir will appear exclusively under this subject tab.",
-                            fontSize = 12.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    PremiumEmptyState(
+                        icon = Icons.Default.MenuBook,
+                        title = "No $currentSubject notes yet",
+                        message = "Study materials added for $currentSubject by Towfik Sir will appear exclusively under this subject."
+                    )
                 }
             }
         }
