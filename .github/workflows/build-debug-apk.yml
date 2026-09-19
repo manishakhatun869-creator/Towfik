@@ -24,9 +24,14 @@ jobs:
             printf 'GEMINI_API_KEY=placeholder_not_used\n' > .env
           fi
       - name: Assemble debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon --no-configuration-cache
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleDebug --stacktrace --no-daemon --no-configuration-cache --console=plain 2>&1 | tee build.log
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            build.log
+          if-no-files-found: warn
