@@ -7,4 +7,14 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Towfik Exclusive premium brand palette -->
+    <color name="brand_navy_950">#FF060F24</color>
+    <color name="brand_navy_900">#FF0A1F44</color>
+    <color name="brand_royal_700">#FF14489F</color>
+    <color name="brand_primary">#FF0F56B3</color>
+    <color name="brand_blue_500">#FF2E7CF6</color>
+    <color name="brand_gold">#FFF59E0B</color>
+    <color name="brand_bg_light">#FFF4F6FB</color>
+    <color name="brand_bg_dark">#FF0A1120</color>
 </resources>

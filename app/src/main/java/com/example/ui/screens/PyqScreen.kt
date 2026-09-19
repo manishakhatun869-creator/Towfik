@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,14 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,144 +39,210 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.QuestionAnswerCard
-import com.example.ui.theme.TowfikPrimaryBlue
+import com.example.ui.theme.CountBadge
+import com.example.ui.theme.GradientIconTile
+import com.example.ui.theme.PremiumEmptyState
+import com.example.ui.theme.VioletGradient
+import com.example.ui.theme.premiumBackground
+import com.example.ui.theme.premiumBorder
+import com.example.ui.theme.premiumCard
+import com.example.ui.theme.premiumTextPrimary
+import com.example.ui.theme.premiumTextSecondary
+import com.example.ui.theme.premiumTextTertiary
 import com.example.viewmodel.MainViewModel
 
 @Composable
 fun PyqScreen(
-    viewModel: MainViewModel,
-    modifier: Modifier = Modifier
+  viewModel: MainViewModel,
+  modifier: Modifier = Modifier
 ) {
-    val pyqItems by viewModel.pyqItems.collectAsState()
-    val isAdmin by viewModel.isAdminLoggedIn.collectAsState()
+  val pyqItems by viewModel.pyqItems.collectAsState()
+  val isAdmin by viewModel.isAdminLoggedIn.collectAsState()
 
-    val years = listOf("All Years", "2025", "2024", "2023", "2022", "2020")
-    var selectedYear by remember { mutableStateOf("All Years") }
+  val years = listOf("All Years", "2025", "2024", "2023", "2022", "2020")
+  var selectedYear by remember { mutableStateOf("All Years") }
 
-    val filteredList = pyqItems.filter { item ->
-        selectedYear == "All Years" || item.pyqYear == selectedYear
+  val filteredList = pyqItems.filter { item ->
+    selectedYear == "All Years" || item.pyqYear == selectedYear
+  }
+
+  LazyColumn(
+    modifier = modifier
+      .fillMaxSize()
+      .background(premiumBackground())
+      .testTag("pyq_screen_lazy_column"),
+    contentPadding = PaddingValues(16.dp),
+    verticalArrangement = Arrangement.spacedBy(14.dp),
+  ) {
+    // Premium Header
+    item {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        GradientIconTile(
+          icon = Icons.Default.Quiz,
+          gradient = VioletGradient,
+          contentDescription = "PYQ",
+          size = 50.dp,
+          cornerRadius = 15.dp,
+          iconSize = 26.dp,
+        )
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = "Solved PYQ Papers",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = premiumTextPrimary(),
+          )
+          Text(
+            text = "Madhyamik board papers with marking key",
+            fontSize = 12.5.sp,
+            color = premiumTextTertiary(),
+            fontWeight = FontWeight.Medium,
+          )
+        }
+        CountBadge(text = "${filteredList.size} papers")
+      }
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .testTag("pyq_screen_lazy_column"),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // Header
-        item {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+    // Stats strip
+    if (pyqItems.isNotEmpty()) {
+      item {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          PyqStatCard(
+            value = "${pyqItems.size}",
+            label = "Total Papers",
+            modifier = Modifier.weight(1f),
+          )
+          PyqStatCard(
+            value = "${pyqItems.map { it.pyqYear }.distinct().size}",
+            label = "Years Covered",
+            modifier = Modifier.weight(1f),
+          )
+          PyqStatCard(
+            value = "${pyqItems.sumOf { if (it.qaList.isNotEmpty()) it.qaList.size else 1 }}",
+            label = "Solved Q&As",
+            modifier = Modifier.weight(1f),
+          )
+        }
+      }
+    }
+
+    // Year Selector Chips
+    item {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        years.forEach { yr ->
+          val selected = selectedYear == yr
+          FilterChip(
+            selected = selected,
+            onClick = { selectedYear = yr },
+            label = {
+              Text(
+                if (yr == "All Years") yr else "$yr Paper",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+              )
+            },
+            leadingIcon = if (selected) {
+              {
                 Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFEDE9FE)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Quiz,
-                        contentDescription = "PYQ",
-                        tint = Color(0xFF7C3AED),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                Column {
-                    Text(
-                        text = "Madhyamik Solved PYQ Papers",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
-                    )
-                    Text(
-                        text = "10+ Years Previous Questions with Official Board Marking Key",
-                        fontSize = 12.sp,
-                        color = Color(0xFF64748B)
-                    )
-                }
-            }
-        }
-
-        // Year Selector Chips
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                years.forEach { yr ->
-                    FilterChip(
-                        selected = selectedYear == yr,
-                        onClick = { selectedYear = yr },
-                        label = { Text(if (yr == "All Years") yr else "$yr Paper", fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFF7C3AED),
-                            selectedLabelColor = Color.White,
-                            containerColor = Color.White
-                        )
-                    )
-                }
-            }
-        }
-
-        // List of PYQ Items or Empty State
-        if (filteredList.isEmpty()) {
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(16.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Quiz,
-                            contentDescription = "PYQ",
-                            tint = Color(0xFF7C3AED),
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Text(
-                            text = "No PYQ Papers Found in Firestore",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0F172A)
-                        )
-                        Text(
-                            text = "Previous year solved question papers published to Firestore will be listed here automatically.",
-                            fontSize = 12.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
-            }
-        } else {
-            items(filteredList, key = { it.id }) { item ->
-                QuestionAnswerCard(
-                    item = item,
-                    isAdmin = isAdmin,
-                    onPdfClick = { viewModel.openPdfPreview(item) },
-                    onEditClick = { viewModel.openAddEditDialog(item) },
-                    onDeleteClick = { viewModel.deleteStudyItem(item.id) }
+                  modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(Color.White),
                 )
-            }
+              }
+            } else {
+              null
+            },
+            colors = FilterChipDefaults.filterChipColors(
+              selectedContainerColor = Color(0xFF7C3AED),
+              selectedLabelColor = Color.White,
+              containerColor = premiumCard(),
+              labelColor = premiumTextSecondary(),
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+              enabled = true,
+              selected = selected,
+              borderColor = premiumBorder(),
+              selectedBorderColor = Color(0xFF7C3AED),
+              borderWidth = 1.dp,
+              selectedBorderWidth = 1.dp,
+            ),
+          )
         }
-
-        item {
-            Spacer(modifier = Modifier.height(40.dp))
-        }
+      }
     }
+
+    if (filteredList.isEmpty()) {
+      item {
+        PremiumEmptyState(
+          icon = Icons.Default.Quiz,
+          title = "No PYQ Papers Found in Firestore",
+          subtitle = "Previous year solved question papers published to Firestore will be listed here automatically.",
+          iconGradient = VioletGradient,
+        )
+      }
+    } else {
+      items(filteredList, key = { it.id }) { item ->
+        QuestionAnswerCard(
+          item = item,
+          isAdmin = isAdmin,
+          onPdfClick = { viewModel.openPdfPreview(item) },
+          onEditClick = { viewModel.openAddEditDialog(item) },
+          onDeleteClick = { viewModel.deleteStudyItem(item.id) },
+        )
+      }
+    }
+
+    item {
+      Spacer(modifier = Modifier.height(40.dp))
+    }
+  }
+}
+
+@Composable
+private fun PyqStatCard(
+  value: String,
+  label: String,
+  modifier: Modifier = Modifier
+) {
+  val dark = isSystemInDarkTheme()
+  Column(
+    modifier = modifier
+      .clip(RoundedCornerShape(16.dp))
+      .background(
+        if (dark) Color(0xFF251647) else Color(0xFFF5F3FF),
+      )
+      .border(
+        1.dp,
+        if (dark) Color(0xFF452A7A) else Color(0xFFDDD6FE),
+        RoundedCornerShape(16.dp),
+      )
+      .padding(vertical = 12.dp, horizontal = 8.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(2.dp),
+  ) {
+    Text(
+      text = value,
+      fontSize = 19.sp,
+      fontWeight = FontWeight.Black,
+      color = if (dark) Color(0xFFDDD6FE) else Color(0xFF6D28D9),
+    )
+    Text(
+      text = label,
+      fontSize = 10.5.sp,
+      fontWeight = FontWeight.SemiBold,
+      color = if (dark) Color(0xFFB7A6E8) else Color(0xFF7C6AAE),
+    )
+  }
 }
