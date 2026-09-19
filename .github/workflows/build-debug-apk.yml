@@ -33,6 +33,11 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew :app:assembleDebug --stacktrace --no-daemon --no-configuration-cache --console=plain 2>&1 | tee build.log
+      - name: Surface Gradle failure
+        if: failure()
+        run: |
+          summary=$(grep -E '^(e:|FAILURE:|What went wrong:|Execution failed|Caused by:)' build.log | tail -20 | tr '\n' ' ' | cut -c1-5000)
+          echo "::error title=Gradle build output::$summary"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
